@@ -4,13 +4,16 @@ SOURCE=./src/main.cpp
 
 EXEC=./bin/run
 
-FLAGS=-std=c++11 -lX11 -Wall
+FLAGS=-std=c++11 -Wall
 
-all: entity
-	$(CC) -I./include $(SOURCE) ./bin/entity.o -o $(EXEC) $(FLAGS)
+all: entity renderer
+	$(CC) -I./include $(SOURCE) ./bin/entity.o ./bin/renderer.o -o $(EXEC) $(FLAGS) -lX11
 
 entity:
-	$(CC) -I./include -c ./src/entity.cpp -o ./bin/entity.o -std=c++11 -Wall
+	$(CC) -I./include -c ./src/entity.cpp -o ./bin/entity.o $(FLAGS)
+
+renderer:
+	$(CC) -I./include -c ./src/renderer.cpp -o ./bin/renderer.o $(FLAGS)
 
 clean:
 	rm ./bin/*

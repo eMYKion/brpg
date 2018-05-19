@@ -11,14 +11,13 @@ class Entity{
 		std::string getName(void);
 		std::string getCategory(void);
 		uint64_t getUUID(void);
-		uint64_t getPosX(void);
-		uint64_t getPosY(void);
+		uint64_t posX;
+		uint64_t posY;
 	private:
 		std::string _name;
 		std::string _category;
 		uint64_t _uuid;
-		uint64_t _pos_x;
-		uint64_t _pos_y;
+		
 };
 
 #endif
