@@ -2,9 +2,12 @@
 #include <cstdlib>
 #include <cstdint>
 #include <unistd.h>//for usleep
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
+
+#include "entity.hpp"
 
 #define WINDOW_HEIGHT 300
 #define WINDOW_WIDTH 500
@@ -12,6 +15,10 @@
 #define KEYPRESS_BUFFER_LENGTH 255
 
 #define PLAYER_SPEED 5
+
+void close_all(Display *dis, Window *win, GC *gc, Colormap *cmap);
+
+//game specific data structures
 
 struct key_state{
 	uint8_t w: 1;
@@ -23,7 +30,7 @@ struct key_state{
 
 void init_key_state(struct key_state *ks);
 
-void close_all(Display *dis, Window *win, GC *gc, Colormap *cmap);
+static Entity player("player", "/", 0, 50, 50);
 
 int main(int argc, char **argv){
 
@@ -76,7 +83,7 @@ int main(int argc, char **argv){
 	
 	screen = DefaultScreen(dis);
 	
-	win = XCreateSimpleWindow(dis, RootWindow(dis, screen), 100, 100, WINDOW_WIDTH, WINDOW_HEIGHT, 1, BlackPixel(dis, screen), WhitePixel(dis, screen));
+	win = XCreateSimpleWindow(dis, RootWindow(dis, screen), 500, 500, WINDOW_WIDTH, WINDOW_HEIGHT, 1, BlackPixel(dis, screen), WhitePixel(dis, screen));
 	XSelectInput(dis, win, StructureNotifyMask | ExposureMask | KeyPressMask | KeyReleaseMask);
 	XSetStandardProperties(dis,win,"Behavior Role Playing Game","BRPG", None, NULL, 0, NULL);
 	XMapWindow(dis, win);
@@ -89,6 +96,7 @@ int main(int argc, char **argv){
 			break;
 		}
 	}
+	std::cout << "Press q on the window to exit.\n";
 	
 	gc = XCreateGC(dis, win, 0, 0);
 	
@@ -150,8 +158,6 @@ int main(int argc, char **argv){
 					
 				}
 			}
-			//print keystate
-			std::cout << (int)keystate.w << " " << (int)keystate.a << " " << (int)keystate.s << " " << (int)keystate.d << "\n";
 			
 		}
 		
