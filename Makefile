@@ -6,8 +6,11 @@ EXEC=./bin/run
 
 FLAGS=-std=c++11 -Wall
 
-all: entity renderer
-	$(CC) -I./include $(SOURCE) ./bin/entity.o ./bin/renderer.o -o $(EXEC) $(FLAGS) -lX11
+all: entity renderer world
+	$(CC) -I./include $(SOURCE) ./bin/*.o -o $(EXEC) $(FLAGS) -lX11
+
+world:
+	$(CC) -I./include -c ./src/world.cpp -o ./bin/world.o $(FLAGS)
 
 entity:
 	$(CC) -I./include -c ./src/entity.cpp -o ./bin/entity.o $(FLAGS)

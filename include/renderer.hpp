@@ -8,8 +8,17 @@
 #include <cstring>
 #include <cstdint>
 
-#define WINDOW_HEIGHT 300
-#define WINDOW_WIDTH 500
+#include "entity.hpp"
+#include "world.hpp"
+
+#define WINDOW_HEIGHT 600
+#define WINDOW_WIDTH 1000
+
+#define TEXT_BOX_WIDTH 300
+#define TEXT_BOX_HEIGHT 200
+
+#define PLAYER_SPEED 5
+
 
 #define KEYPRESS_BUFFER_LENGTH 255
 
@@ -31,6 +40,11 @@ class Renderer{
 		void fillRectangle(int x, int y, unsigned int width, unsigned int height, XColor color);
 	
 		void drawString(int x, int y, const char *str, XColor color);
+	
+		void drawEntity(Entity &entity);
+		void renderWorld(World &world);
+	
+		void updatePlayerPos(Entity &player);
 	
 		void flush(void);
 		void uSleep(useconds_t usec);
@@ -55,7 +69,5 @@ class Renderer{
 	
 		struct key_state _ks;
 };
-
-
 
 #endif

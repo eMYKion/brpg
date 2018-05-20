@@ -79,6 +79,53 @@ void Renderer::drawString(int x, int y, const char *str, XColor color){
 	XDrawString(this->_dis, this->_win, this->_gc, x, y, str, strlen(str));
 }
 
+void Renderer::drawEntity(Entity &entity){
+	XSetForeground(this->_dis, this->_gc, this->getColor(entity.getColorName()).pixel);
+	XFillRectangle(this->_dis, this->_win, this->_gc, entity.posX, entity.posY, entity.getWidth(), entity.getHeight());
+	XSetForeground(this->_dis, this->_gc, this->getColor("black").pixel);
+	XDrawRectangle(this->_dis, this->_win, this->_gc, entity.posX, entity.posY, entity.getWidth(), entity.getHeight());
+	
+	const char* name = entity.getName();
+	XDrawString(this->_dis, this->_win, this->_gc, entity.posX, entity.posY, name, strlen(name));
+}
+
+void Renderer::renderWorld(World &world){
+
+	for(int i = 0, n = world.entityList.size(); i < n; i++ ){
+		if(world.entityList.at(i)->posX >= 0 && world.entityList.at(i)->posX <= WINDOW_WIDTH && world.entityList.at(i)->posY >= 0 && world.entityList.at(i)->posY <= WINDOW_HEIGHT - TEXT_BOX_HEIGHT){
+			this->drawEntity(*(world.entityList.at(i)));
+		}
+		
+	}
+}
+
+void Renderer::updatePlayerPos(Entity &player){
+	
+	//update position by normalized velocity (so that going diagonal is same speed as going orthagonal)
+	
+	if(this->_ks.d - this->_ks.a != 0){
+
+		if(this->_ks.s - this->_ks.w != 0){
+			player.posX += PLAYER_SPEED / 1.4142f * (this->_ks.d - this->_ks.a);
+			player.posY += PLAYER_SPEED / 1.4142f * (this->_ks.s - this->_ks.w);
+		}else{
+			player.posX += PLAYER_SPEED * (this->_ks.d - this->_ks.a);	
+		}
+
+	}else{
+
+		if(this->_ks.s - this->_ks.w != 0){
+			
+			player.posY += PLAYER_SPEED * (this->_ks.s - this->_ks.w);
+			
+		}else{
+			//do nothing
+		}
+
+	}
+
+}
+
 void Renderer::flush(void){
 	XFlush(this->_dis);
 }
