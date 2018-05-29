@@ -1,5 +1,6 @@
 #include "renderer.hpp"
 #include <iostream>
+#include <algorithm>
 
 Renderer::Renderer(void){
 	
@@ -50,6 +51,9 @@ Renderer::Renderer(void){
 	this->_ks.s = 0;
 	this->_ks.d = 0;
 	this->_ks.extra = 0;
+	
+	this->_text_mode = false;
+	this->_text_buffer = "";
 }
 
 Renderer::~Renderer(void){
@@ -57,6 +61,8 @@ Renderer::~Renderer(void){
 	XDestroyWindow(this->_dis, this->_win);
 	XFreeColormap(this->_dis, this->_colormap);
 	XCloseDisplay(this->_dis);
+	this->_text_buffer = "";
+	this->_text_history.clear();
 }
 
 void Renderer::drawRectangle(int x, int y, unsigned int width, unsigned int height, XColor color){
@@ -87,6 +93,29 @@ void Renderer::drawEntity(Entity &entity){
 	
 	const char* name = entity.getName();
 	XDrawString(this->_dis, this->_win, this->_gc, entity.posX, entity.posY, name, strlen(name));
+}
+
+void Renderer::renderTextBox(void){
+	
+	XSetForeground(this->_dis, this->_gc, this->getColor("black").pixel);
+	XDrawRectangle(this->_dis, this->_win, this->_gc, TEXT_BOX_MARGIN, WINDOW_HEIGHT - TEXT_BOX_HEIGHT - TEXT_BOX_MARGIN, TEXT_BOX_WIDTH , TEXT_BOX_HEIGHT);
+	
+	if(this->_text_mode){
+		
+		XDrawString(this->_dis, this->_win, this->_gc, 5 + TEXT_BOX_MARGIN, WINDOW_HEIGHT - TEXT_BOX_HEIGHT - 2 * TEXT_BOX_MARGIN, "text mode on", strlen("text mode on"));
+		
+	}
+	
+	for(int i = 0, n = std::min((int)this->_text_history.size(), MAX_HISTORY); i < n; i++){
+		
+		const char *msg = this->_text_history.at(std::max((int)this->_text_history.size() - MAX_HISTORY, 0) + n -1 - i).c_str();
+		
+		XDrawString(this->_dis, this->_win, this->_gc, TEXT_BOX_MARGIN,  WINDOW_HEIGHT - TEXT_BOX_MARGIN - LINE_WIDTH - LINE_WIDTH * i, msg, strlen(msg));
+		
+	}
+	
+	XDrawString(this->_dis, this->_win, this->_gc, TEXT_BOX_MARGIN,  WINDOW_HEIGHT - TEXT_BOX_MARGIN, this->_text_buffer.c_str(), strlen(this->_text_buffer.c_str()));
+	
 }
 
 void Renderer::renderWorld(World &world){
@@ -130,10 +159,6 @@ void Renderer::flush(void){
 	XFlush(this->_dis);
 }
 
-void Renderer::uSleep(useconds_t usec){
-	usleep(usec);
-}
-
 XColor Renderer::getColor(const char *name){
 	if(strcmp(name, "white") == 0){
 		
@@ -162,51 +187,89 @@ void Renderer::updateEvents(void){
 	char text[KEYPRESS_BUFFER_LENGTH];
 	
 	if(XCheckWindowEvent(this->_dis, this->_win, ExposureMask | KeyPressMask | KeyReleaseMask, &event)){
+		
+		if(! this->_text_mode){
 
-		if (event.type == KeyPress && XLookupString(&event.xkey, text, KEYPRESS_BUFFER_LENGTH, &key, 0) == 1) {
+			if (event.type == KeyPress && XLookupString(&event.xkey, text, KEYPRESS_BUFFER_LENGTH, &key, 0) == 1) {
 
-			switch(text[0]){
-				case('q'):
-					exit(1);
-					break;
-				case('w'):
-					this->_ks.w = 1;
-					break;
-				case('a'):
-					this->_ks.a = 1;
-					break;
-				case('s'):
-					this->_ks.s = 1;
-					break;
-				case('d'):
-					this->_ks.d = 1;
-					break;
-				default:
-					break;
+				switch(text[0]){
+					case('/'):
+						this->_text_mode = true;
+						break;
+					case('q'):
+						exit(1);
+						break;
+					case('w'):
+						this->_ks.w = 1;
+						break;
+					case('a'):
+						this->_ks.a = 1;
+						break;
+					case('s'):
+						this->_ks.s = 1;
+						break;
+					case('d'):
+						this->_ks.d = 1;
+						break;
+					default:
+						break;
 
-			}
-
-		}
-
-		if (event.type == KeyRelease && XLookupString(&event.xkey, text, KEYPRESS_BUFFER_LENGTH, &key, 0) == 1) {
-
-			switch(text[0]){
-				case('w'):
-					this->_ks.w = 0;
-					break;
-				case('a'):
-					this->_ks.a = 0;
-					break;
-				case('s'):
-					this->_ks.s = 0;
-					break;
-				case('d'):
-					this->_ks.d = 0;
-					break;
-				default:
-					break;
+				}
 
 			}
+
+			if (event.type == KeyRelease && XLookupString(&event.xkey, text, KEYPRESS_BUFFER_LENGTH, &key, 0) == 1) {
+
+				switch(text[0]){
+					case('w'):
+						this->_ks.w = 0;
+						break;
+					case('a'):
+						this->_ks.a = 0;
+						break;
+					case('s'):
+						this->_ks.s = 0;
+						break;
+					case('d'):
+						this->_ks.d = 0;
+						break;
+					default:
+						break;
+
+				}
+			}
+			
+		}else{//if not in text mode
+			
+			if (event.type == KeyPress && XLookupString(&event.xkey, text, KEYPRESS_BUFFER_LENGTH, &key, 0) == 1){
+				
+				if(text[0] == '/'){
+					this->_text_mode = false;
+				}else{
+					
+					switch(text[0]){
+						
+						case('\r'):
+							this->_text_history.push_back(this->_text_buffer);
+							this->_text_buffer = "";
+							break;
+							
+						case('\b'):
+							if(this->_text_buffer.length() > 0){
+								this->_text_buffer.pop_back();
+							}
+							break;
+						default:
+							this->_text_buffer.append(1, text[0]);
+							break;
+					}
+				
+				
+					//TODO:: add protections against breaking inputs
+				
+				}
+			}
+		
 		}
 
 	}

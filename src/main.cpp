@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdint>
+#include <unistd.h>//for usleep
 
 #include "entity.hpp"
 #include "renderer.hpp"
@@ -42,9 +43,12 @@ int main(int argc, char **argv){
 				
 		renderer.renderWorld(world);
 		renderer.drawString(50, 50, village, renderer.getColor("black"));
+		
+		renderer.renderTextBox();
+		
 		renderer.flush();
 		
-		renderer.uSleep(10*1000);
+		usleep(10*1000);
 		
 		//clear screen
 		renderer.fillRectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, renderer.getColor("white"));

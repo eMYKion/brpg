@@ -4,23 +4,26 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-#include <unistd.h>//for usleep
 #include <cstring>
 #include <cstdint>
 
 #include "entity.hpp"
 #include "world.hpp"
 
+#define PLAYER_SPEED 5
+
+#define KEYPRESS_BUFFER_LENGTH 255
+
 #define WINDOW_HEIGHT 600
 #define WINDOW_WIDTH 1000
 
-#define TEXT_BOX_WIDTH 300
-#define TEXT_BOX_HEIGHT 200
+#define MAX_HISTORY 17
+#define LINE_WIDTH 10
+#define TEXT_BOX_MARGIN 2
+#define TEXT_BOX_PADDING 2
 
-#define PLAYER_SPEED 5
-
-
-#define KEYPRESS_BUFFER_LENGTH 255
+#define TEXT_BOX_WIDTH WINDOW_WIDTH - 2*TEXT_BOX_MARGIN
+#define TEXT_BOX_HEIGHT (MAX_HISTORY + 1) * LINE_WIDTH
 
 struct key_state{
 	uint8_t w: 1;
@@ -44,10 +47,11 @@ class Renderer{
 		void drawEntity(Entity &entity);
 		void renderWorld(World &world);
 	
+		void renderTextBox(void);
+	
 		void updatePlayerPos(Entity &player);
 	
 		void flush(void);
-		void uSleep(useconds_t usec);
 		XColor getColor(const char *name);
 	
 		struct key_state getKeyState(void);
@@ -58,6 +62,10 @@ class Renderer{
 		Window _win;
 		GC _gc;//graphics context
 		Colormap _colormap; 
+	
+		bool _text_mode;
+		std::string _text_buffer;
+		std::vector<std::string> _text_history;
 	
 		const char *_green_bits = "#00FF00";
 		const char *_black_bits = "#000000";
