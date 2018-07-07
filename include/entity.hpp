@@ -13,7 +13,7 @@ class Entity{
 		const char *getColorName(void);	
 		uint8_t getWidth(void);
 		uint8_t getHeight(void);
-	
+		
 		uint64_t getUUID(void);
 		uint64_t getLatestEntityUUID(void);
 		uint64_t posX;
