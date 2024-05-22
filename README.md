@@ -1,4 +1,4 @@
-# Behavior-Driven Characters RPG (BRPG)
+# [UNDER CONSTRUCTION] Behavior-Driven Characters RPG (BRPG)
 
 ## "Requirements"
 1. Ubuntu 16.04
